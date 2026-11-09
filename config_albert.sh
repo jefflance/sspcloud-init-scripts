@@ -14,7 +14,7 @@ version: 1.0.0
 schema: v1
 model_defaults: &model_defaults
   provider: openai
-  apiKey: ${{ ALBERT_API_KEY }}
+  apiKey: ${{ secrets.ALBERT_API_KEY }}
   apiBase: https://albert.api.etalab.gouv.fr/v1
 models:
   - name: openweight-large
