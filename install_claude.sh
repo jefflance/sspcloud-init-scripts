@@ -12,7 +12,8 @@
 # Une seconde voie, sans aucun droit administrateur, prend le relais si
 # NodeSource échoue : l'archive officielle dépliée dans ~/.local/node.
 #
-# L'authentification reste manuelle : lancer « claude login » dans le terminal.
+# Authentification : token CLAUDE_CODE_OAUTH_TOKEN lu dans Vault (section 4),
+# sinon « claude login » dans le terminal.
 
 set -u
 
@@ -173,9 +174,27 @@ if ! grep -q '.npm-global/bin' "$BASHRC" 2>/dev/null; then
   echo "[PATH] complété dans .bashrc"
 fi
 
+# Authentification sans « claude login » : token (claude setup-token) stocké dans
+# Vault, clé CLAUDE_CODE_OAUTH_TOKEN, lu à l'ouverture de chaque terminal par le
+# helper de setup_git.sh, jamais écrit sur disque. Le terminal seulement :
+# l'extension VSCode ne lit pas .bashrc et demande toujours sa connexion.
+if ! grep -q 'CLAUDE_CODE_OAUTH_TOKEN' "$BASHRC" 2>/dev/null; then
+  cat >> "$BASHRC" <<'EOF'
+
+# Claude Code : token d'abonnement lu dans Vault (voir install_claude.sh).
+if [ -z "${CLAUDE_CODE_OAUTH_TOKEN:-}" ] && [ -x "$HOME/.local/bin/git-credential-vault" ]; then
+  CLAUDE_CODE_OAUTH_TOKEN="$("$HOME/.local/bin/git-credential-vault" secret CLAUDE_CODE_OAUTH_TOKEN)"
+  [ -n "$CLAUDE_CODE_OAUTH_TOKEN" ] && export CLAUDE_CODE_OAUTH_TOKEN || unset CLAUDE_CODE_OAUTH_TOKEN
+fi
+EOF
+  echo "[Auth] lecture du token Vault ajoutée à .bashrc"
+fi
+# Sans ce drapeau, un ~/.claude.json vierge relance l'assistant de premier démarrage.
+[ -f "$USER_HOME/.claude.json" ] || echo '{"hasCompletedOnboarding": true}' > "$USER_HOME/.claude.json"
+
 mkdir -p "$USER_HOME/.claude"
 if [ "$(id -u)" = "0" ]; then
-  chown -R onyxia:onyxia "$USER_HOME/.claude" "$NPM_PREFIX" "$BASHRC" \
+  chown -R onyxia:onyxia "$USER_HOME/.claude" "$USER_HOME/.claude.json" "$NPM_PREFIX" "$BASHRC" \
     2>/dev/null || true
   [ -d "$NODE_LOCAL" ] && chown -R onyxia:onyxia "$NODE_LOCAL" 2>/dev/null || true
 fi
@@ -186,7 +205,8 @@ if [ -x "$NPM_PREFIX/bin/claude" ]; then
         || echo 'installé')"
   echo "[Claude Code] Node utilisé : $(node --version)"
   echo "[Claude Code] Ouvre un NOUVEAU terminal (pour recharger le PATH),"
-  echo "              puis : claude login"
+  echo "              puis : claude (ou claude login si CLAUDE_CODE_OAUTH_TOKEN"
+  echo "              est absent de Vault)"
 else
   echo "[Claude Code] ÉCHEC : rien dans $NPM_PREFIX/bin"
 fi

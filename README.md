@@ -11,7 +11,7 @@ https://raw.githubusercontent.com/paquitopg/sspcloud-init-scripts/refs/heads/mai
 
 | Brique | Rôle |
 | --- | --- |
-| `install_claude.sh` | Node.js 22, CLI Claude Code, extension VSCode |
+| `install_claude.sh` | Node.js 22, CLI Claude Code, extension VSCode, token `CLAUDE_CODE_OAUTH_TOKEN` lu dans Vault (pas de `claude login`) |
 | `install_claude_plugins.sh` | bun, plugins Claude Code (compound-engineering, frontend-design, ponytail) |
 | `install_openspec.sh` | CLI OpenSpec (télémétrie coupée) |
 | `setup_git.sh` | Git, helper `git-credential-vault`, clone du dépôt du service |
