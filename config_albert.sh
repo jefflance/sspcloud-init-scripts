@@ -43,4 +43,4 @@ models:
       - autocomplete
 EOF
 
-echo "Agent Continue posé (clé dans ~/.continue/.env)."
+echo "Agent Continue posé."
